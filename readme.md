@@ -1,1 +1,1 @@
-# webapp-memecoin-mvp
+# iot-consuming-service

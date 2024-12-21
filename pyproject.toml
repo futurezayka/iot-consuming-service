@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "iotfastapiservice"
+version = "0.1.0"
+description = ""
+authors = ["futurefkslaves <kurachvlad911@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+uvicorn = "^0.32.1"
+pydantic-settings = "^2.6.1"
+aio-pika = "^9.5.4"
+pre-commit = "^4.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

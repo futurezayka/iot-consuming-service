@@ -12,7 +12,7 @@ def retry(max_retries: int, delay: int = 2):
                     return await func(*args, **kwargs)
                 except Exception:
                     if attempt < max_retries - 1:
-                        await asyncio.sleep(delay ** attempt)
+                        await asyncio.sleep(delay**attempt)
 
         return wrapper
 

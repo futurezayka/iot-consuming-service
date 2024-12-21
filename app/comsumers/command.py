@@ -15,9 +15,7 @@ class CommandConsumer(ABCCommandConsumer):
                 await channel.set_qos(10)
 
                 queue = await channel.declare_queue(
-                    Queues.command.value,
-                    durable=True,
-                    auto_delete=False
+                    Queues.command.value, durable=True, auto_delete=False
                 )
                 async with queue.iterator() as queue_iter:
                     async for message in queue_iter:

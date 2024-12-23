@@ -2,7 +2,7 @@
 pycache/
 *.py[cod]
 *$py.class
-*rabbitmq*
+rabbitmq/
 # C extensions
 *.so
 

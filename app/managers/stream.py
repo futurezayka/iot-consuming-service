@@ -6,7 +6,11 @@ from aio_pika import Message
 
 from commands.imvoker import DeviceInvoker
 from commands.retrieve_data import RetrieveDataCommand
+from devices.light import LightSensor
+from devices.motion import MotionSensor
 from devices.temperature import TemperatureSensor
+from enums.commands import Commands
+from enums.device_type import DeviceType
 from enums.queues import Queues
 from schemas.commands import StreamCommand
 
@@ -17,29 +21,38 @@ class StreamManager:
 
     async def process(self, channel, message):
         message = StreamCommand(**json.loads(message.body))
-        print(self.active_streams)
         match message.type:
-            case "start_stream":
+            case Commands.start_stream.value:
                 await self.process_device(channel, message)
-            case "stop_stream":
+            case Commands.stop_stream.value:
                 await self.__stop_stream(channel, message.device_id)
+            case _:
+                print("Invalid command")
+                return
 
     async def process_device(self, channel, message):
+        if message.device_id in self.active_streams:
+            print(f"Stream already active for device: {message.device_id}")
+            return
         invoker = DeviceInvoker()
         match message.device_type:
-            case "temperature":
+            case DeviceType.temperature.value:
                 device = TemperatureSensor()
-                command = RetrieveDataCommand(device)
-                invoker.add_command(command)
-            case "light":
-                ...
-        if message.device_id not in self.active_streams:
-            print(f"Starting stream for device: {message.device_id}")
-            self.active_streams[message.device_id] = asyncio.create_task(
-                self.__start_stream(channel, message.device_id, invoker)
-            )
+            case DeviceType.light.value:
+                device = LightSensor()
+            case DeviceType.motion.value:
+                device = MotionSensor()
+            case _:
+                print("Invalid device type")
+                return
+        invoker.add_command(RetrieveDataCommand(device))
+        print(f"Starting stream for device: {message.device_id}")
+        self.active_streams[message.device_id] = asyncio.create_task(
+            self.__start_stream(channel, message.device_id, invoker)
+        )
 
-    async def __start_stream(self, channel, device_id: UUID, invoker: DeviceInvoker):
+    @staticmethod
+    async def __start_stream(channel, device_id: UUID, invoker: DeviceInvoker):
         queue = Queues.data.value.format(device_id=device_id)
         await channel.declare_queue(queue, durable=True, auto_delete=False)
         while True:

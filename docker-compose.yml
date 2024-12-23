@@ -1,9 +1,23 @@
 version: "3.8"
 services:
+  consumer:
+    build:
+      context: .
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    container_name: consumer
+    networks:
+      - iotcontrolservice-network
+    depends_on:
+      - rabbitmq
+    command: python -u ./app/main.py
   rabbitmq:
     image: rabbitmq:3.10.7-management
     hostname: rabbitmq
     restart: always
+    container_name: rabbitmq
     env_file:
       - .env
     environment:

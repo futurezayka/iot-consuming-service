@@ -7,10 +7,10 @@ from app.consumers.command import CommandConsumer
 from app.core import settings
 from app.decorators.retry import retry
 from app.interfaces.consumer import ABCCommandConsumer
-from app.interfaces.rabbitmq import ABCRabbitMQService
+from app.interfaces.rabbitmq import ABCRabbitMQManager
 
 
-class RabbitMQService(ABCRabbitMQService):
+class RabbitMQManager(ABCRabbitMQManager):
     def __init__(self, command_consumer: ABCCommandConsumer):
         self.__config = settings.rabbitmq
         self.__consumer = command_consumer or CommandConsumer()
@@ -42,7 +42,5 @@ class RabbitMQService(ABCRabbitMQService):
             return await connection.channel()
 
 
-def rabbitmq_service() -> RabbitMQService:
-    return RabbitMQService(
-        command_consumer=CommandConsumer()
-    )
+def get_rabbitmq_manager() -> RabbitMQManager:
+    return RabbitMQManager(command_consumer=CommandConsumer())

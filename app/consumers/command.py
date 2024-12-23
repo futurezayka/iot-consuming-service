@@ -10,6 +10,7 @@ class CommandConsumer(ABCCommandConsumer):
         self.__stream_manager = StreamManager()
 
     async def consume(self, channel_pool) -> None:
+        print("Consuming messages")
         async with channel_pool.acquire() as channel:
             while True:
                 await channel.set_qos(10)
@@ -20,11 +21,12 @@ class CommandConsumer(ABCCommandConsumer):
                 async with queue.iterator() as queue_iter:
                     async for message in queue_iter:
                         await message.ack()
-                        asyncio.ensure_future(self.process_message(channel, message))
+                        asyncio.ensure_future(self._process_message(channel, message))
                 await asyncio.sleep(0.1)
 
-    async def process_message(self, channel, message):
+    async def _process_message(self, channel, message):
         try:
+            print(f"Processing message: {message.body}")
             await self.__stream_manager.process(channel, message)
         except Exception as e:
             print(f"Error processing message: {e}")

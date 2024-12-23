@@ -18,6 +18,7 @@ from schemas.commands import StreamCommand
 class StreamManager:
     def __init__(self):
         self.active_streams = dict()
+        self.__device_invoker = DeviceInvoker()
 
     async def process(self, channel, message):
         message = StreamCommand(**json.loads(message.body))
@@ -34,7 +35,7 @@ class StreamManager:
         if message.device_id in self.active_streams:
             print(f"Stream already active for device: {message.device_id}")
             return
-        invoker = DeviceInvoker()
+
         match message.device_type:
             case DeviceType.temperature.value:
                 device = TemperatureSensor()
@@ -45,18 +46,17 @@ class StreamManager:
             case _:
                 print("Invalid device type")
                 return
-        invoker.add_command(RetrieveDataCommand(device))
+        self.__device_invoker.add_command(RetrieveDataCommand(device))
         print(f"Starting stream for device: {message.device_id}")
         self.active_streams[message.device_id] = asyncio.create_task(
-            self.__start_stream(channel, message.device_id, invoker)
+            self.__start_stream(channel, message.device_id)
         )
 
-    @staticmethod
-    async def __start_stream(channel, device_id: UUID, invoker: DeviceInvoker):
+    async def __start_stream(self, channel, device_id: UUID):
         queue = Queues.data.value.format(device_id=device_id)
         await channel.declare_queue(queue, durable=True, auto_delete=False)
         while True:
-            data = await invoker.execute_commands()
+            data = await self.__device_invoker.execute_commands()
             message = Message(body=str(data).encode())
             await channel.default_exchange.publish(message, routing_key=queue)
             await asyncio.sleep(1)

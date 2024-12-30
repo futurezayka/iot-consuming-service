@@ -1,6 +1,5 @@
 import asyncio
 import json
-from uuid import UUID
 
 from aio_pika import Message
 
@@ -22,6 +21,7 @@ class StreamManager:
 
     async def process(self, channel, message):
         message = StreamCommand(**json.loads(message.body))
+        print(f"Processing message: {message}")
         match message.type:
             case Commands.start_stream.value:
                 await self.process_device(channel, message)
@@ -52,16 +52,16 @@ class StreamManager:
             self.__start_stream(channel, message.device_id)
         )
 
-    async def __start_stream(self, channel, device_id: UUID):
+    async def __start_stream(self, channel, device_id: str):
         queue = Queues.data.value.format(device_id=device_id)
         await channel.declare_queue(queue, durable=True, auto_delete=False)
         while True:
             data = await self.__device_invoker.execute_commands()
-            message = Message(body=str(data).encode())
+            message = Message(body=data.encode())
             await channel.default_exchange.publish(message, routing_key=queue)
-            await asyncio.sleep(1)
+            await asyncio.sleep(5)
 
-    async def __stop_stream(self, channel, device_id: UUID):
+    async def __stop_stream(self, channel, device_id: str):
         queue = Queues.data.value.format(device_id=device_id)
         queue = await channel.declare_queue(queue, durable=True, auto_delete=False)
         if device_id in self.active_streams:

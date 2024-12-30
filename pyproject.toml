@@ -11,6 +11,7 @@ uvicorn = "^0.32.1"
 pydantic-settings = "^2.6.1"
 aio-pika = "^9.5.4"
 pre-commit = "^4.0.1"
+pylint = "^3.3.2"
 
 
 [build-system]

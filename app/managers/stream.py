@@ -36,7 +36,7 @@ class StreamManager:
             print(f"Stream already active for device: {message.device_id}")
             return
 
-        match message.device_type:
+        match message.device_type.lower():
             case DeviceType.temperature.value:
                 device = TemperatureSensor()
             case DeviceType.light.value:

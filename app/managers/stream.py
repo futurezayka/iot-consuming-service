@@ -5,12 +5,12 @@ from aio_pika import Message
 
 from commands.imvoker import DeviceInvoker
 from commands.retrieve_data import RetrieveDataCommand
-from devices.light import LightSensor
-from devices.motion import MotionSensor
-from devices.temperature import TemperatureSensor
 from enums.commands import Commands
 from enums.device_type import DeviceType
 from enums.queues import Queues
+from factory.light import LightSensorFactory
+from factory.motion import MotionSensorFactory
+from factory.temperature import TemperatureSensorFactory
 from schemas.commands import StreamCommand
 
 
@@ -38,11 +38,11 @@ class StreamManager:
 
         match message.device_type.lower():
             case DeviceType.temperature.value:
-                device = TemperatureSensor()
+                device = TemperatureSensorFactory.create_sensor()
             case DeviceType.light.value:
-                device = LightSensor()
+                device = LightSensorFactory.create_sensor()
             case DeviceType.motion.value:
-                device = MotionSensor()
+                device = MotionSensorFactory.create_sensor()
             case _:
                 print("Invalid device type")
                 return
